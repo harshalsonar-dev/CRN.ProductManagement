@@ -1,12 +1,15 @@
-﻿using CRN.ProductManagement.Infrastructure.Identity;
+using CRN.ProductManagement.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CRN.ProductManagement.Infrastructure.Identity;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(IServiceProvider serviceProvider)
+    public static async Task SeedAsync(
+        IServiceProvider serviceProvider,
+        IConfiguration configuration)
     {
         var roleManager =
             serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -24,8 +27,14 @@ public static class DbInitializer
             }
         }
 
-        const string adminEmail = "admin@crn.com";
-        const string adminPassword = "Admin@123";
+        var adminEmail = configuration["AdminSeed:Email"];
+        var adminPassword = configuration["AdminSeed:Password"];
+
+        if (string.IsNullOrWhiteSpace(adminEmail) ||
+            string.IsNullOrWhiteSpace(adminPassword))
+        {
+            return;
+        }
 
         var admin =
             await userManager.FindByEmailAsync(adminEmail);
